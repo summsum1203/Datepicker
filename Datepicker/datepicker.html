@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Static Datepicker UI (HTML + CSS Only)</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #f6f7fb;
+      --border: #d8dce8;
+      --text: #20222a;
+      --muted: #6b7280;
+      --accent: #d12c7a;  /* SASSy magenta */
+      --accent-2: #1c7c7d; /* Teal */
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #f9fafb, #eef1f6);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+    }
+
+    .card {
+      width: 360px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 1.125rem;
+    }
+
+    .datepicker {
+      position: relative;
+    }
+
+    .field {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .field input[type="text"] {
+      border: 0;
+      outline: none;
+      background: transparent;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .field input::placeholder { color: var(--muted); }
+
+    .icon-btn {
+      border: 0;
+      background: var(--bg);
+      color: var(--accent-2);
+      border: 1px solid var(--border);
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      cursor: default; /* static UI */
+    }
+
+    /* Calendar panel */
+    .calendar {
+      position: absolute;
+      top: calc(100% + 10px);
+      left: 0;
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(6px);
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    /* Reveal calendar when focusing inside the datepicker */
+    .datepicker:focus-within .calendar {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .cal-header {
+      display: grid;
+      grid-template-columns: 36px 1fr 36px;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-btn {
+      border: 0;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      cursor: default; /* static */
+    }
+
+    .month-label {
+      text-align: center;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      padding: 12px;
+    }
+
+    .dow {
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      text-align: center;
+      padding: 6px 0;
+    }
+
+    .day {
+      text-align: center;
+      padding: 10px 0;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      color: var(--text);
+      background: #fff;
+    }
+
+    /* Example highlight for “selected” style (static) */
+    .day.is-selected {
+      border-color: var(--accent);
+      background: color-mix(in oklab, var(--accent) 14%, white);
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Weekend tint (optional) */
+    .day.is-weekend {
+      background: #fafafa;
+      color: #3f3f46;
+    }
+
+    /* Footer hint */
+    .cal-foot {
+      border-top: 1px solid var(--border);
+      padding: 10px 12px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+      display: inline-block;
+    }
+    .swatch.magenta { background: var(--accent); }
+    .swatch.teal { background: var(--accent-2); }
+  </style>
+</head>
+<body>
+  <main class="card" aria-label="Static datepicker UI">
+    <h2>Datepicker UI</h2>
+    <div class="datepicker">
+      <label class="field" aria-label="Enter date">
+        <input type="text" placeholder="dd / mm / yyyy" aria-label="Date input (static)" />
+        <button class="icon-btn" aria-label="Calendar icon" title="Calendar">
+          <!-- Inline SVG calendar icon (static) -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 3v4M16 3v4M3 9h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </label>
+
+      <!-- Calendar panel (static, appears on focus via :focus-within) -->
+      <section class="calendar" aria-label="Calendar (static UI)">
+        <header class="cal-header">
+          <button class="nav-btn" aria-label="Previous month" title="Previous">
+            <!-- left chevron -->
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="month-label">December 2022</div>
+          <button class="nav-btn" aria-label="Next month" title="Next">
+            <!-- right chevron -->
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </header>
+
+        <div class="cal-grid" role="grid" aria-readonly="true">
+          <!-- Days of week -->
+          <div class="dow" role="columnheader">S</div>
+          <div class="dow" role="columnheader">M</div>
+          <div class="dow" role="columnheader">T</div>
+          <div class="dow" role="columnheader">W</div>
+          <div class="dow" role="columnheader">T</div>
+          <div class="dow" role="columnheader">F</div>
+          <div class="dow" role="columnheader">S</div>
+
+          <!-- Static dates (Dec 2022 grid example) -->
+          <!-- Row 1 -->
+          <div class="day is-weekend" role="gridcell" aria-selected="false">27</div>
+          <div class="day" role="gridcell" aria-selected="false">28</div>
+          <div class="day" role="gridcell" aria-selected="false">29</div>
+          <div class="day" role="gridcell" aria-selected="false">30</div>
+          <div class="day" role="gridcell" aria-selected="false">1</div>
+          <div class="day" role="gridcell" aria-selected="false">2</div>
+          <div class="day is-weekend" role="gridcell" aria-selected="false">3</div>
+
+          <!-- Row 2 -->
+          <div class="day is-weekend" role="gridcell" aria-selected="false">4</div>
+          <div class="day" role="gridcell" aria-selected="false">5</div>
+          <div class="day" role="gridcell" aria-selected="false">6</div>
+          <div class="day" role="gridcell" aria-selected="false">7</div>
+          <div class="day" role="gridcell" aria-selected="false">8</div>
+          <div class="day" role="gridcell" aria-selected="false">9</div>
+          <div class="day is-weekend" role="gridcell" aria-selected="false">10</div>
+
+          <!-- Row 3 -->
+          <div class="day is-weekend" role="gridcell" aria-selected="false">11</div>
+          <div class="day" role="gridcell" aria-selected="false">12</div>
+          <div class="day" role="gridcell" aria-selected="false is-selected">13</div>
+          <div class="day is-selected" role="gridcell" aria-selected="true">14</div>
+          <div class="day" role="gridcell" aria-selected="false">15</div>
+          <div class="day" role="gridcell" aria-selected="false">16</div>
+          <div class="day is-weekend" role="gridcell" aria-selected="false">17</div>
+
+          <!-- Row 4 -->
+          <div class="day is-weekend" role="gridcell" aria-selected="false">18</div>
+          <div class="day" role="gridcell" aria-selected="false">19</div>
+          <div class="day" role="gridcell" aria-selected="false">20</div>
+          <div class="day" role="gridcell" aria-selected="false">21</div>
+          <div class="day" role="gridcell" aria-selected="false">22</div>
+          <div class="day" role="gridcell" aria-selected="false">23</div>
+          <div class="day is-weekend" role="gridcell" aria-selected="false">24</div>
+
+          <!-- Row 5 -->
+          <div class="day is-weekend" role="gridcell" aria-selected="false">25</div>
+          <div class="day" role="gridcell" aria-selected="false">26</div>
+          <div class="day" role="gridcell" aria-selected="false">27</div>
+          <div class="day" role="gridcell" aria-selected="false">28</div>
+          <div class="day" role="gridcell" aria-selected="false">29</div>
+          <div class="day" role="gridcell" aria-selected="false">30</div>
+          <div class="day is-weekend" role="gridcell" aria-selected="false">31</div>
+        </div>
+
+        <footer class="cal-foot" aria-hidden="true">
+          <span class="swatch magenta" title="Accent magenta"></span>
+          <span class="swatch teal" title="Accent teal"></span>
+          <span>Static UI — style only, no JavaScript.</span>
+        </footer>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
